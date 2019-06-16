@@ -8,11 +8,12 @@ import (
 
 // Inspired by https://stackoverflow.com/questions/28020070
 func toBase64(m redundantStructure) (*string, error) {
+	// TODO: potential optimization by not calling gob.Register every time
+	gob.Register(redundantStructure{})
+
 	b := bytes.Buffer{}
 	e := gob.NewEncoder(&b)
 
-	// TODO: potential optimization by not calling gob.Register every time
-	gob.Register(redundantStructure{})
 	err := e.Encode(m)
 	if err != nil {
 		return nil, err
@@ -24,6 +25,9 @@ func toBase64(m redundantStructure) (*string, error) {
 
 // Inspired by https://stackoverflow.com/questions/28020070
 func fromBase64(str string) (*redundantStructure, error) {
+	// TODO: potential optimization by not calling gob.Register every time
+	gob.Register(redundantStructure{})
+
 	m := redundantStructure{}
 	by, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {

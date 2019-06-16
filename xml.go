@@ -15,11 +15,13 @@ type xmlMapEntry struct {
 }
 
 func getDeserializedXMLMap(XMLData string) (SerializableMap, error) {
+	// Parses entities in the XML string
 	expandedXMLString, err := expandXMLString(XMLData)
 	if err != nil {
 		return nil, err
 	}
 
+	// After entity parsing, convert the XML string back to a SerializableMap
 	var xmlMap SerializableMap
 	err = xml.Unmarshal([]byte(*expandedXMLString), &xmlMap)
 	if err != nil {
@@ -68,7 +70,20 @@ func (m *SerializableMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 }
 
 func expandXMLString(xmlString string) (*string, error) {
-	//xmlString = `<!DOCTYPE SerializableMap [ <!ELEMENT SerializableMap ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" >]><SerializableMap><bio>&xxe;</bio></SerializableMap>`
+	// OWASP Top 10 2017 #4: XML External Entities (XXE)
+	// We deserialize insecurely (see 'deserialize' in main.go), so the XML
+	// section of our redundantStructure can be replaced with arbitrary XML. Our
+	// XML parser has external entity parsing enabled, so the attacker can
+	// access filesystem contents. For example, to access the machine's
+	// /etc/passwd file, we would use a payload like so:
+	// <!DOCTYPE SerializableMap [ <!ELEMENT SerializableMap ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" >]><SerializableMap><bio>&xxe;</bio></SerializableMap>
+	//
+	// This XXE example is a bit artificial. Golang's 'encoding/xml' package
+	// doesn't appear to parse XML entities when Unmarshalling, so I'm using the
+	// lestrrat-go/libxml2 interface. See: stackoverflow.com/questions/28662417
+	//
+	// The 'parser.XMLParseNoEnt' parameter should not be enabled here, as this
+	// library does not use XML's entity / DTD features.
 
 	doc, err := libxml2.ParseString(xmlString, parser.XMLParseNoEnt)
 	defer doc.Free()
