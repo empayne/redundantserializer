@@ -31,4 +31,4 @@
 
 [[constraint]]
   branch = "master"
-  name = "golang.org/x/net"
+  name = "github.com/lestrrat-go/libxml2"

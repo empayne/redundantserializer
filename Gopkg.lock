@@ -3,47 +3,34 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a167b5c532f3245f5a147ade26185f16d6ee8f8d3f6c9846f447e9d8b9705505"
-  name = "golang.org/x/net"
+  digest = "1:846f4efe02d404e5ddc3fd26e5e0440f9c0df3c6f76a90b51c722c1dad725d42"
+  name = "github.com/lestrrat-go/libxml2"
   packages = [
-    "html",
-    "html/atom",
-    "html/charset",
+    ".",
+    "clib",
+    "dom",
+    "internal/debug",
+    "parser",
+    "types",
+    "xpath",
   ]
   pruneopts = "UT"
-  revision = "d28f0bde5980168871434b95cfc858db9f2a7a99"
+  revision = "f24a389bbd76bf20b2139896da78cba180802939"
 
 [[projects]]
-  digest = "1:8a0baffd5559acaa560f854d7d525c02f4fec2d4f8a214398556fb661a10f6e0"
-  name = "golang.org/x/text"
-  packages = [
-    "encoding",
-    "encoding/charmap",
-    "encoding/htmlindex",
-    "encoding/internal",
-    "encoding/internal/identifier",
-    "encoding/japanese",
-    "encoding/korean",
-    "encoding/simplifiedchinese",
-    "encoding/traditionalchinese",
-    "encoding/unicode",
-    "internal/gen",
-    "internal/language",
-    "internal/language/compact",
-    "internal/tag",
-    "internal/utf8internal",
-    "language",
-    "runes",
-    "transform",
-    "unicode/cldr",
-  ]
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  name = "github.com/pkg/errors"
+  packages = ["."]
   pruneopts = "UT"
-  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
-  version = "v0.3.2"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["golang.org/x/net/html/charset"]
+  input-imports = [
+    "github.com/lestrrat-go/libxml2",
+    "github.com/lestrrat-go/libxml2/parser",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
