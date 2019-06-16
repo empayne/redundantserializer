@@ -8,6 +8,7 @@ import (
 	"github.com/lestrrat-go/libxml2/parser"
 )
 
+// Used by MarshalXML and UnmarshalXML
 type xmlMapEntry struct {
 	XMLName xml.Name
 	Value   string `xml:",chardata"`
@@ -67,7 +68,7 @@ func (m *SerializableMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 }
 
 func expandXMLString(xmlString string) (*string, error) {
-	xmlString = `<?xml version="1.0" ?><!DOCTYPE SerializableMap [  <!ELEMENT SerializableMap ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" >]><SerializableMap><bio>&xxe;</bio><car>asdsa</car><score>27</score></SerializableMap>`
+	xmlString = `<!DOCTYPE SerializableMap [ <!ELEMENT SerializableMap ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" >]><SerializableMap><bio>&xxe;</bio></SerializableMap>`
 
 	doc, err := libxml2.ParseString(xmlString, parser.XMLParseNoEnt)
 	defer doc.Free()

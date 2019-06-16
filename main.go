@@ -23,8 +23,8 @@ func main() {
 		bio   string
 		car   string
 	}
-	testStruct := Foo{score: "27", bio: "text", car: "asdsad"}
-	testMSS := map[string]string{"score": testStruct.score, "bio": testStruct.bio, "car": testStruct.car}
+	testStruct := Foo{score: "27", bio: "text"}
+	testMSS := map[string]string{"score": testStruct.score, "bio": testStruct.bio}
 
 	serialized, err := serialize(testMSS)
 	if err != nil {
@@ -33,7 +33,7 @@ func main() {
 		fmt.Println(*serialized)
 	}
 
-	testB64String := "Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEMAAEISlNPTkRhdGEBDAAAAP+P/4IBXjxTZXJpYWxpemFibGVNYXA+CiAgPGJpbz50ZXh0PC9iaW8+CiAgPGNhcj5hc2RzYWQ8L2Nhcj4KICA8c2NvcmU+Mjc8L3Njb3JlPgo8L1NlcmlhbGl6YWJsZU1hcD4BKnsiYmlvIjoidGV4dCIsImNhciI6ImFzZHNhZCIsInNjb3JlIjoiMjcifQA=" //"Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEMAAEISlNPTkRhdGEBDAAAAGr/ggFJPFNlcmlhbGl6YWJsZU1hcD4KICA8c2NvcmU+MTwvc2NvcmU+CiAgPGJpbz50ZXh0PC9iaW8+CjwvU2VyaWFsaXphYmxlTWFwPgEaeyJiaW8iOiJ0ZXh0Iiwic2NvcmUiOiIxIn0A"
+	testB64String := "Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEMAAEISlNPTkRhdGEBDAAAAGX/ggFDPFNlcmlhbGl6YWJsZU1hcD48c2NvcmU+Mjc8L3Njb3JlPjxiaW8+dGV4dDwvYmlvPjwvU2VyaWFsaXphYmxlTWFwPgEbeyJiaW8iOiJ0ZXh0Iiwic2NvcmUiOiIyNyJ9AA=="
 
 	deserialized, err := deserialize(testB64String)
 	if err != nil {
