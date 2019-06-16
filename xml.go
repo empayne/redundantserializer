@@ -68,7 +68,7 @@ func (m *SerializableMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 }
 
 func expandXMLString(xmlString string) (*string, error) {
-	xmlString = `<!DOCTYPE SerializableMap [ <!ELEMENT SerializableMap ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" >]><SerializableMap><bio>&xxe;</bio></SerializableMap>`
+	//xmlString = `<!DOCTYPE SerializableMap [ <!ELEMENT SerializableMap ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" >]><SerializableMap><bio>&xxe;</bio></SerializableMap>`
 
 	doc, err := libxml2.ParseString(xmlString, parser.XMLParseNoEnt)
 	defer doc.Free()

