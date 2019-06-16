@@ -8,6 +8,7 @@ import (
 	"reflect"
 )
 
+// TODO: avoid typecasts by just defining these as []byte vs. string
 type redundantStructure struct {
 	XMLData  string
 	JSONData string
