@@ -1,17 +1,23 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/gob"
+	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
+	"reflect"
 
 	"github.com/lestrrat-go/libxml2"
 	"github.com/lestrrat-go/libxml2/parser"
 )
 
 type redundantStructure struct {
-	XMLData  []byte
-	JSONData []byte
+	XMLData  string
+	JSONData string
 }
 
 type xmlMapEntry struct {
@@ -24,97 +30,86 @@ type xmlMapEntry struct {
 type SerializableMap map[string]string
 
 func main() {
-	// type Foo struct {
-	// 	a   string
-	// 	bio string
-	// }
-	// testStruct := Foo{a: "<!ELEMENT bio ANY ><!ENTITY e SYSTEM 'file:///etc/passwd' >", bio: "&e;"}
-	// testMSS := map[string]string{"a": testStruct.a, "bio": testStruct.bio}
-
-	// serialized, err := serialize(testMSS)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// } else {
-	// 	fmt.Println(*serialized)
-	// }
-
-	// //toDeserialize := "Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEKAAEISlNPTkRhdGEBCgAAAGr/ggFJPFNlcmlhbGl6YWJsZU1hcD4KICA8c2NvcmU+MTwvc2NvcmU+CiAgPGJpbz50ZXh0PC9iaW8+CjwvU2VyaWFsaXphYmxlTWFwPgEaeyJiaW8iOiJ0ZXh0Iiwic2NvcmUiOiIxIn0A"
-	//toDeserialize := "Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEKAAEISlNPTkRhdGEBCgAAAP/7/4IB/4s8U2VyaWFsaXphYmxlTWFwPjxhPiZsdDshRUxFTUVOVCBiaW8gQU5ZICZndDsmbHQ7IUVOVElUWSBlIFNZU1RFTSAmIzM5O2ZpbGU6Ly8vZXRjL3Bhc3N3ZCYjMzk7ICZndDs8L2E+PGJpbz4mYW1wO2U7PC9iaW8+PC9TZXJpYWxpemFibGVNYXA+AWh7ImEiOiJcdTAwM2MhRUxFTUVOVCBiaW8gQU5ZIFx1MDAzZVx1MDAzYyFFTlRJVFkgZSBTWVNURU0gJ2ZpbGU6Ly8vZXRjL3Bhc3N3ZCcgXHUwMDNlIiwiYmlvIjoiXHUwMDI2ZTsifQA="
-	// deserialized, err := deserialize()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// } else {
-	// 	fmt.Println(deserialized)
-	// }
-
 	type Foo struct {
-		a   int
-		bio string
+		score string
+		bio   string
+		car   string
 	}
-	//testStruct := Foo{a: 1, bio: "foo"}
-	//testMSI := map[string]interface{}{"a": testStruct.a, "bio": testStruct.bio}
+	testStruct := Foo{score: "27", bio: "text", car: "asdsad"}
+	testMSS := map[string]string{"score": testStruct.score, "bio": testStruct.bio, "car": testStruct.car}
 
-	// mv := mxj.Map(testMSI)
-	// xmlValue, _ := mv.Xml() // marshal
-	// fmt.Println(xmlValue)
-
-	// xxeXMLValue := []byte{10, 60, 63, 120, 109, 108, 32, 118, 101, 114, 115, 105, 111, 110, 61, 34, 49, 46, 48, 34, 32, 63, 62, 10, 32, 60, 33, 68, 79, 67, 84, 89, 80, 69, 32, 98, 105, 111, 32, 91, 32, 32, 10, 32, 32, 32, 60, 33, 69, 76, 69, 77, 69, 78, 84, 32, 98, 105, 111, 32, 65, 78, 89, 32, 62, 10, 32, 32, 32, 60, 33, 69, 78, 84, 73, 84, 89, 32, 120, 120, 101, 32, 83, 89, 83, 84, 69, 77, 32, 34, 102, 105, 108, 101, 58, 47, 47, 47, 101, 116, 99, 47, 112, 97, 115, 115, 119, 100, 34, 32, 62, 93, 62, 10, 60, 100, 111, 99, 62, 60, 97, 62, 49, 60, 47, 97, 62, 60, 98, 105, 111, 62, 38, 120, 120, 101, 59, 60, 47, 98, 105, 111, 62, 60, 47, 100, 111, 99, 62}
-	// mxj.CustomDecoder = &xml.Decoder{Strict: false, Entity: xml.HTMLEntity}
-	// //mxj.CustomDecoder.Entity["xxe"] = "<!ENTITY xxe SYSTEM 'file:///etc/passwd' >"
-	// mv2, err := mxj.NewMapXml(xxeXMLValue) // unmarshal
-	// fmt.Println(err)
-	// fmt.Println(mv2)
-
-	//d := dom.CreateDocument()
-	toParse := `<?xml version="1.0" encoding="ISO-8859-1"?><!DOCTYPE foo [  <!ELEMENT foo ANY > <!ENTITY xxe SYSTEM "file:///etc/passwd" >]><foo>&xxe;</foo>`
-	const stdXMLDecl = `<?xml version="1.0"?>` + "\n"
-	//toParse := stdXMLDecl + `<!DOCTYPE foobar [` + "\n" + `<!ENTITY foo " test ">` + "\n" + `]>` + "\n" + `<foobar>&foo;</foobar>`
-	//a := parser.XMLParseDTDLoad | parser.XMLParseDTDAttr | parser.XMLParseDTDValid
-	d2, err := libxml2.ParseString(toParse, parser.XMLParseNoEnt)
-
+	serialized, err := serialize(testMSS)
 	if err != nil {
-		println(err)
-		return
+		fmt.Println(err)
+	} else {
+		fmt.Println(*serialized)
 	}
-	fmt.Println(d2)
+
+	testB64String := "Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEMAAEISlNPTkRhdGEBDAAAAP+P/4IBXjxTZXJpYWxpemFibGVNYXA+CiAgPGJpbz50ZXh0PC9iaW8+CiAgPGNhcj5hc2RzYWQ8L2Nhcj4KICA8c2NvcmU+Mjc8L3Njb3JlPgo8L1NlcmlhbGl6YWJsZU1hcD4BKnsiYmlvIjoidGV4dCIsImNhciI6ImFzZHNhZCIsInNjb3JlIjoiMjcifQA=" //"Of+BAwEBEnJlZHVuZGFudFN0cnVjdHVyZQH/ggABAgEHWE1MRGF0YQEMAAEISlNPTkRhdGEBDAAAAGr/ggFJPFNlcmlhbGl6YWJsZU1hcD4KICA8c2NvcmU+MTwvc2NvcmU+CiAgPGJpbz50ZXh0PC9iaW8+CjwvU2VyaWFsaXphYmxlTWFwPgEaeyJiaW8iOiJ0ZXh0Iiwic2NvcmUiOiIxIn0A"
+
+	deserialized, err := deserialize(testB64String)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(deserialized)
+	}
 }
 
-// func serialize(in SerializableMap) (*string, error) {
-// 	xmlData, err := xml.Marshal(in)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	jsonData, err := json.Marshal(in)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	toSerialize := redundantStructure{xmlData, jsonData}
-// 	return toBase64(toSerialize)
-// }
-
-func deserialize() (SerializableMap, error) {
-	// decoded, err := fromBase64(in)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// fmt.Println(decoded)
-
-	var xmlDeserialized SerializableMap
-	byteData := []byte{60, 63, 120, 109, 108, 32, 118, 101, 114, 115, 105, 111, 110, 61, 34, 49, 46, 48, 34, 32, 63, 62, 10, 32, 60, 33, 68, 79, 67, 84, 89, 80, 69, 32, 98, 105, 111, 32, 91, 32, 32, 10, 32, 32, 32, 60, 33, 69, 76, 69, 77, 69, 78, 84, 32, 98, 105, 111, 32, 65, 78, 89, 32, 62, 10, 32, 32, 32, 60, 33, 69, 78, 84, 73, 84, 89, 32, 120, 120, 101, 32, 83, 89, 83, 84, 69, 77, 32, 34, 102, 105, 108, 101, 58, 47, 47, 47, 101, 116, 99, 47, 112, 97, 115, 115, 119, 100, 34, 32, 62, 93, 62, 10, 60, 83, 101, 114, 105, 97, 108, 105, 122, 97, 98, 108, 101, 77, 97, 112, 62, 60, 115, 99, 111, 114, 101, 62, 49, 60, 47, 115, 99, 111, 114, 101, 62, 60, 98, 105, 111, 62, 38, 120, 120, 101, 59, 60, 47, 98, 105, 111, 62, 60, 47, 83, 101, 114, 105, 97, 108, 105, 122, 97, 98, 108, 101, 77, 97, 112, 62}
-
-	err := xml.Unmarshal( /*decoded.XMLData*/ byteData, &xmlDeserialized)
+func serialize(in SerializableMap) (*string, error) {
+	xmlData, err := xml.Marshal(in)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(xmlDeserialized)
 
-	return nil, nil
+	jsonData, err := json.Marshal(in)
+	if err != nil {
+		return nil, err
+	}
+
+	toSerialize := redundantStructure{string(xmlData), string(jsonData)}
+	return toBase64(toSerialize)
 }
 
-// MarshalXML asda
+func deserialize(in string) (SerializableMap, error) {
+	base64Decoded, err := fromBase64(in)
+	if err != nil {
+		return nil, err
+	}
+
+	xmlMap, err := getDeserializedXMLMap(base64Decoded.XMLData)
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonMap SerializableMap
+	err = json.Unmarshal([]byte(base64Decoded.JSONData), &jsonMap)
+
+	if !reflect.DeepEqual(xmlMap, jsonMap) {
+		errorMessage := fmt.Sprintf("Deserialized XML (%v) and JSON (%v) are not equal!", xmlMap, jsonMap)
+		return nil, errors.New(errorMessage)
+	}
+
+	// arbitrarily return xmlMap over jsonMap; we already know they're equal
+	return xmlMap, nil
+}
+
+func getDeserializedXMLMap(XMLData string) (SerializableMap, error) {
+	expandedXMLString, err := expandXMLString(XMLData)
+	if err != nil {
+		return nil, err
+	}
+
+	var xmlMap SerializableMap
+	err = xml.Unmarshal([]byte(*expandedXMLString), &xmlMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return xmlMap, nil
+}
+
+// MarshalXML maps our SerializableMap to XML data.
+// Inspired by https://blog.csdn.net/tangtong1/article/details/80418286
 func (m SerializableMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	if len(m) == 0 {
 		return nil
@@ -132,10 +127,9 @@ func (m SerializableMap) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeToken(start.End())
 }
 
-// UnmarshalXML asda
+// UnmarshalXML maps our XML data back to a SerializableMap.
+// Inspired by https://blog.csdn.net/tangtong1/article/details/80418286
 func (m *SerializableMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	d.Strict = false
-	d.Entity = xml.HTMLEntity
 	*m = SerializableMap{}
 	for {
 		var e xmlMapEntry
@@ -152,94 +146,48 @@ func (m *SerializableMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 	return nil
 }
 
-// // MarshalXML maps our SerializableMap to XML data.
-// // Inspired by https://blog.csdn.net/tangtong1/article/details/80418286
-// func (m SerializableMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-// 	if len(m) == 0 {
-// 		return nil
-// 	}
+func expandXMLString(xmlString string) (*string, error) {
+	xmlString = `<?xml version="1.0" ?><!DOCTYPE SerializableMap [  <!ELEMENT SerializableMap ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" >]><SerializableMap><bio>&xxe;</bio><car>asdsa</car><score>27</score></SerializableMap>`
 
-// 	err := e.EncodeToken(start)
-// 	if err != nil {
-// 		return err
-// 	}
+	doc, err := libxml2.ParseString(xmlString, parser.XMLParseNoEnt)
+	defer doc.Free()
+	if err != nil {
+		return nil, err
+	}
 
-// 	for k, v := range m {
-// 		e.Encode(xmlMapEntry{XMLName: xml.Name{Local: k}, Value: v})
-// 	}
+	xmlStr := doc.Dump(false)
+	return &xmlStr, nil
+}
 
-// 	return e.EncodeToken(start.End())
-// }
+// Inspired by https://stackoverflow.com/questions/28020070
+func toBase64(m redundantStructure) (*string, error) {
+	b := bytes.Buffer{}
+	e := gob.NewEncoder(&b)
 
-// // UnmarshalXML maps our XML data back to a SerializableMap.
-// // Inspired by https://blog.csdn.net/tangtong1/article/details/80418286
-// func (m *SerializableMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-// 	d.Strict = false
-// 	//d.Entity = xml.HTMLEntity
-// 	//d.Entity["xxe"] = "<!ENTITY e SYSTEM 'file:///etc/passwd' >"
-// 	//d.CharsetReader = charset.NewReaderLabel
-// 	*m = SerializableMap{}
-// 	for {
-// 		var e xmlMapEntry
+	// TODO: potential optimization by not calling gob.Register every time
+	gob.Register(redundantStructure{})
+	err := e.Encode(m)
+	if err != nil {
+		return nil, err
+	}
 
-// 		err := d.Decode(&e)
-// 		if err == io.EOF {
-// 			break
-// 		} else if err != nil {
-// 			return err
-// 		}
+	encoded := base64.StdEncoding.EncodeToString(b.Bytes())
+	return &encoded, nil
+}
 
-// 		(*m)[e.XMLName.Local] = e.Value
-// 	}
-// 	return nil
-// }
-
-// func (m *SerializableMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-// 	*m = StringMap{}
-// 	for {
-// 		var e xmlMapEntry
-
-// 		err := d.Decode(&e)
-// 		if err == io.EOF {
-// 			break
-// 		} else if err != nil {
-// 			return err
-// 		}
-
-// 		(*m)[e.XMLName.Local] = e.Value
-// 	}
-// 	return nil
-// }
-
-// // Inspired by https://stackoverflow.com/questions/28020070
-// func toBase64(m redundantStructure) (*string, error) {
-// 	b := bytes.Buffer{}
-// 	e := gob.NewEncoder(&b)
-
-// 	// TODO: potential optimization by not calling gob.Register every time
-// 	gob.Register(redundantStructure{})
-// 	err := e.Encode(m)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	encoded := base64.StdEncoding.EncodeToString(b.Bytes())
-// 	return &encoded, nil
-// }
-
-// // Inspired by https://stackoverflow.com/questions/28020070
-// func fromBase64(str string) (*redundantStructure, error) {
-// 	m := redundantStructure{}
-// 	by, err := base64.StdEncoding.DecodeString(str)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	b := bytes.Buffer{}
-// 	b.Write(by)
-// 	d := gob.NewDecoder(&b)
-// 	err = d.Decode(&m)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &m, nil
-// }
+// Inspired by https://stackoverflow.com/questions/28020070
+func fromBase64(str string) (*redundantStructure, error) {
+	m := redundantStructure{}
+	by, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return nil, err
+	}
+	b := bytes.Buffer{}
+	b.Write(by)
+	d := gob.NewDecoder(&b)
+	err = d.Decode(&m)
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
