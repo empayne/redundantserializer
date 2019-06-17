@@ -43,7 +43,7 @@ func Deserialize(in *string) (SerializableMap, error) {
 	// OWASP Top 10 2017 #8: Insecure Deserialization
 	// We don't check the integrity of the base64 string before deserializing
 	// it. If an attacker can reverse-engineer the file format (which is trivial
-	// here, they can alter parameters such as their score before re-uploading
+	// here), they can alter parameters such as their score before re-uploading
 	// the binary blob.
 	//
 	// We should be checking that the blob has not been tampered with via a

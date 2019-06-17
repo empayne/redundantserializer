@@ -15,15 +15,13 @@ type xmlMapEntry struct {
 }
 
 func getDeserializedXMLMap(XMLData string) (SerializableMap, error) {
-	// Parses entities in the XML string
-	expandedXMLString, err := expandXMLString(XMLData)
-	if err != nil {
-		return nil, err
-	}
+
+	// v1.0.1: Disable entity parsing due to XXE flaw
+	// expandedXMLString, err := expandXMLString(XMLData)
 
 	// After entity parsing, convert the XML string back to a SerializableMap
 	var xmlMap SerializableMap
-	err = xml.Unmarshal([]byte(*expandedXMLString), &xmlMap)
+	err := xml.Unmarshal([]byte(XMLData), &xmlMap)
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +51,7 @@ func (m SerializableMap) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 // UnmarshalXML maps our XML data back to a SerializableMap.
 // Inspired by https://blog.csdn.net/tangtong1/article/details/80418286
 func (m *SerializableMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	d.Strict = false
 	*m = SerializableMap{}
 	for {
 		var e xmlMapEntry
