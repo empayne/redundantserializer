@@ -14,8 +14,7 @@ func toBase64(m redundantStructure) (*string, error) {
 	b := bytes.Buffer{}
 	e := gob.NewEncoder(&b)
 
-	err := e.Encode(m)
-	if err != nil {
+	if err := e.Encode(m); err != nil {
 		return nil, err
 	}
 
@@ -36,8 +35,7 @@ func fromBase64(str string) (*redundantStructure, error) {
 	b := bytes.Buffer{}
 	b.Write(by)
 	d := gob.NewDecoder(&b)
-	err = d.Decode(&m)
-	if err != nil {
+	if err = d.Decode(&m); err != nil {
 		return nil, err
 	}
 	return &m, nil
