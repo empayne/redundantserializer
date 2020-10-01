@@ -60,11 +60,12 @@ func Deserialize(in *string) (SerializableMap, error) {
 	}
 
 	var jsonMap SerializableMap
-	err = json.Unmarshal([]byte(base64Decoded.JSONData), &jsonMap)
+	if err := json.Unmarshal([]byte(base64Decoded.JSONData), &jsonMap); err != nil {
+		return nil, err
+	}
 
 	if !reflect.DeepEqual(xmlMap, jsonMap) {
-		errorMessage := fmt.Sprintf("Deserialized XML (%v) and JSON (%v) are not equal!", xmlMap, jsonMap)
-		return nil, errors.New(errorMessage)
+		return nil, fmt.Errorf("Deserialized XML (%v) and JSON (%v) are not equal!", xmlMap, jsonMap)
 	}
 
 	// Arbitrarily return xmlMap over jsonMap; we already know they're equal

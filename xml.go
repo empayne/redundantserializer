@@ -36,8 +36,7 @@ func (m SerializableMap) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 		return nil
 	}
 
-	err := e.EncodeToken(start)
-	if err != nil {
+	if err := e.EncodeToken(start); err != nil {
 		return err
 	}
 
